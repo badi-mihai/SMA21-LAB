@@ -20,7 +20,7 @@
         android:id="@+id/bUpdate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/lStatus"
+        android:layout_below="@+id/tStatus"
         android:onClick="clicked"
         android:text="Update"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -98,6 +98,14 @@
         android:text="Income:"
         app:layout_constraintBottom_toTopOf="@+id/bUpdate"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="409dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/tStatus"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="1dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
