@@ -13,6 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartWallet">
         <activity
+            android:name=".AddPaymentActivity"
+            android:theme="@style/Base.Theme.AppCompat.Light.Dialog"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity2"
             android:exported="true">
             <intent-filter>
