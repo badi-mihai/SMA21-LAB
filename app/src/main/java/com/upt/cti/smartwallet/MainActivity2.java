@@ -28,6 +28,9 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class MainActivity2 extends AppCompatActivity {
 
     private TextView tStatus;
@@ -40,6 +43,12 @@ public class MainActivity2 extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private static final String TAG_MONTH = "";
     private final static String PREFERENCES_SETTINGS = "prefs_settings";
+    private PaymentAdapter adapter;
+
+    // Firebase authentication
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private static final int REQ_SIGNIN = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +59,8 @@ public class MainActivity2 extends AppCompatActivity {
         bPrevious =  findViewById(R.id.bPrevious);
         bNext =  findViewById(R.id.bNext);
         fabAdd = findViewById(R.id.fabAdd);
+        adapter = new PaymentAdapter(this, R.layout.item_payment, payments);
+
         listPayments = findViewById(R.id.listPayments);
         final PaymentAdapter adapter = new PaymentAdapter(this, R.layout.item_payment, payments);
         listPayments.setAdapter(adapter);
@@ -61,6 +72,28 @@ public class MainActivity2 extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), AddPaymentActivity.class));
             }
         });
+
+        // setup authentication
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user != null) {
+                    TextView tLoginDetail = (TextView) findViewById(R.id.tLo);
+                    TextView tUser = (TextView) findViewById(R.id.tUser);
+                    tLoginDetail.setText("Firebase ID: " + user.getUid());
+                    tUser.setText("Email: " + user.getEmail());
+
+                    AppState.get().setUserId(user.getUid());
+                    attachDBListener(user.getUid());
+                } else {
+                    startActivityForResult(new Intent(getApplicationContext(),
+                            SignupActivity.class), REQ_SIGNIN);
+                }
+            }
+        };
 
         sharedPreferences =  getSharedPreferences(PREFERENCES_SETTINGS, Context.MODE_PRIVATE);
         currentMonth = sharedPreferences.getInt(TAG_MONTH, -1);
@@ -83,8 +116,15 @@ public class MainActivity2 extends AppCompatActivity {
                 Toast.makeText(this, "This app needs an internet connection!", Toast.LENGTH_SHORT).show();
             }
         }
+    }
 
-        databaseReference.child("wallet").addChildEventListener(new ChildEventListener() {
+    private void attachDBListener(String uid) {
+        // setup firebase database
+        final FirebaseDatabase database = FirebaseDatabase.getInstance("https://smart-wallet-3b5c7-default-rtdb.europe-west1.firebasedatabase.app/");
+        databaseReference = database.getReference();
+        AppState.get().setDatabaseReference(databaseReference);
+
+        databaseReference.child("wallet").child(uid).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 Payment newPayment = snapshot.getValue(Payment.class);
@@ -119,6 +159,20 @@ public class MainActivity2 extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     public void clicked(View view){

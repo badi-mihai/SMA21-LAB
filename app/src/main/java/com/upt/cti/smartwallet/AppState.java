@@ -107,4 +107,7 @@ public class AppState {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
+    public String getUserID(){return currentPayment.getUser();}
+    public void setUserId(String uid) { currentPayment.setUser(uid);}
 }
