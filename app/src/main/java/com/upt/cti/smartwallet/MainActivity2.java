@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ChildEventListener;
@@ -68,7 +69,20 @@ public class MainActivity2 extends AppCompatActivity {
 
         // setup firebase
         final FirebaseDatabase database = FirebaseDatabase.getInstance("https://smart-wallet-3b5c7-default-rtdb.europe-west1.firebasedatabase.app/");
+        database.setPersistenceEnabled(true);
         databaseReference = database.getReference();
+        databaseReference.child("wallet").keepSynced(true);
+
+        if (!AppState.isNetworkAvailable(this)) {
+            // has local storage already
+            if (AppState.get().hasLocalStorage(this)) {
+                payments = AppState.get().loadFromLocalBackup(this);
+                tStatus.setText("Found " + payments.size() + " payments");
+
+            } else {
+                Toast.makeText(this, "This app needs an internet connection!", Toast.LENGTH_SHORT).show();
+            }
+        }
 
         databaseReference.child("wallet").addChildEventListener(new ChildEventListener() {
             @Override
